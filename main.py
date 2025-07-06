@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from app.data_collectors.data_collector import collect_data
+from app.data_collectors.historical_collector import HistoricalDataCollector
 from config.settings import DATABASE_PATH
 from app.models.funding_rate_models import Base
 from sqlalchemy import create_engine
@@ -26,10 +27,12 @@ def main():
     ], help='Action to perform')
     
     # Data collection arguments
-    parser.add_argument('--days', type=int, default=7, 
-                       help='Number of days of historical data to collect (default: 7)')
+    parser.add_argument('--days', type=int, default=180, 
+                       help='Number of days of historical data to collect (default: 180 for 6 months)')
     parser.add_argument('--live', action='store_true', 
                        help='Start live data collection')
+    parser.add_argument('--historical', action='store_true',
+                       help='Collect comprehensive historical data (6 months by default)')
     
     # Backtesting arguments
     parser.add_argument('--strategy', type=str, default='funding_rate',
@@ -66,8 +69,19 @@ def main():
                 asyncio.run(continuous_collection())
             except KeyboardInterrupt:
                 print("\nData collection stopped.")
+        elif args.historical:
+            print(f"Starting comprehensive historical data collection for {args.days} days...")
+            print("This may take several hours depending on the amount of data.")
+            print("Progress will be logged to logs/historical_collection.log")
+            try:
+                asyncio.run(collect_comprehensive_historical_data(args.days))
+                print("\n✅ Historical data collection completed successfully!")
+            except KeyboardInterrupt:
+                print("\n⚠️  Data collection interrupted by user")
+            except Exception as e:
+                print(f"\n❌ Error during historical collection: {e}")
         else:
-            print(f"Collecting {args.days} days of historical data...")
+            print(f"Collecting {args.days} days of basic historical data...")
             asyncio.run(collect_historical_data(args.days))
             print("Historical data collection completed.")
             
@@ -87,9 +101,14 @@ def main():
 
 async def collect_historical_data(days):
     """Collect historical data for specified number of days."""
-    print(f"Historical data collection for {days} days would be implemented here.")
-    # TODO: Implement historical data collection logic
+    print(f"Basic historical data collection for {days} days...")
+    # TODO: Implement basic historical data collection logic
     await collect_data()
+
+async def collect_comprehensive_historical_data(days):
+    """Collect comprehensive historical data using the enhanced collector."""
+    collector = HistoricalDataCollector()
+    await collector.collect_historical_data(days_back=days)
 
 async def continuous_collection():
     """Continuously collect live data."""

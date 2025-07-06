@@ -41,10 +41,12 @@ TRADING_PAIRS = {
 # --- Data Collection Configuration ---
 DATA_COLLECTION = {
     'interval': '1m',  # 1-minute candles
-    'lookback_days': 30,  # Default historical data collection
+    'lookback_days': 180,  # 6 months of historical data (180 days)
     'funding_rate_interval': 8,  # Funding rates every 8 hours
     'max_retries': 3,
     'retry_delay': 5,  # seconds
+    'batch_size': 1000,  # Number of candles per API request
+    'rate_limit_delay': 0.1,  # Delay between requests (100ms)
 }
 
 # --- Funding Rate Configuration ---
